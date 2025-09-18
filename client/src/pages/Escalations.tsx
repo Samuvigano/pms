@@ -9,10 +9,13 @@ import {
   AlertTriangle,
   Clock,
   CheckCircle,
+  Check,
   User,
   Send,
   Loader2,
+  Info,
 } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 interface Escalation {
   _id: string;
@@ -85,6 +88,20 @@ const formatTimestamp = (timestamp: string): string => {
   return `${diffInDays} days ago`;
 };
 
+// Emphasized age label (days/hours) for aggressive display
+const getAgeEmphasis = (timestamp: string): { label: string; className: string } => {
+  const created = new Date(timestamp);
+  const now = new Date();
+  const diffMs = now.getTime() - created.getTime();
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (days >= 1) {
+    const severity = days >= 3 ? "text-red-600" : days >= 1 ? "text-orange-600" : "text-gray-600";
+    return { label: `${days}d`, className: `font-semibold ${severity}` };
+  }
+  const hours = Math.floor(diffMs / (1000 * 60 * 60));
+  return { label: `${Math.max(hours, 1)}h`, className: "font-semibold text-gray-600" };
+};
+
 const Escalations = () => {
   const [escalations, setEscalations] = useState<Escalation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -94,6 +111,8 @@ const Escalations = () => {
     null
   );
   const [responseMessage, setResponseMessage] = useState("");
+  const [infoOpen, setInfoOpen] = useState(false);
+  const [infoEscalation, setInfoEscalation] = useState<Escalation | null>(null);
 
   // Fetch escalations from API
   const fetchEscalations = async () => {
@@ -297,120 +316,110 @@ const Escalations = () => {
                 Pending Requests ({pendingEscalations.length})
               </h3>
 
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {pendingEscalations.map((escalation) => (
-                  <Card
+                  <div
                     key={escalation._id}
-                    className="hover:shadow-md transition-all duration-200 border-l-4 border-l-orange-400"
+                    className="relative bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow"
                   >
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start space-x-4">
-                          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                            <User className="h-6 w-6 text-blue-600" />
-                          </div>
-                          <div className="flex-1">
-                            <CardTitle className="text-lg text-gray-900 mb-1">
-                              {escalation.guestName}
-                            </CardTitle>
-                            <p className="text-sm text-gray-600 mb-2">
-                              {escalation.propertyName} •{" "}
-                              {formatTimestamp(escalation.createdAt)}
-                            </p>
-                            <p className="text-gray-900 leading-relaxed">
-                              {escalation.message}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-end space-y-2">
-                          <Badge
-                            className={getPriorityColor(
-                              escalation.priority || "medium"
-                            )}
-                          >
-                            {escalation.priority || "medium"} priority
-                          </Badge>
-                          <Badge className={getStatusColor(escalation.status)}>
-                            {getStatusIcon(escalation.status)}
-                            <span className="ml-1">{escalation.status}</span>
-                          </Badge>
-                        </div>
-                      </div>
-                    </CardHeader>
+                    {/* Corner avatar overlay */}
+                    <div className="absolute -top-3 -right-3 h-10 w-10 rounded-full ring-2 ring-white shadow bg-gradient-to-r from-blue-500 to-indigo-500 text-white flex items-center justify-center text-xs font-semibold">
+                      {escalation.guestName?.split(" ").map((n) => n[0]).join("")}
+                    </div>
 
-                    <CardContent>
-                      {selectedEscalation === escalation._id ? (
-                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                          <h4 className="font-medium text-gray-900 mb-3">
-                            Respond to {escalation.guestName}
-                          </h4>
-                          <Textarea
-                            value={responseMessage}
-                            onChange={(e) => setResponseMessage(e.target.value)}
-                            placeholder="Type your response to the guest here..."
-                            rows={4}
-                            className="mb-3 border-blue-200 focus:border-blue-400"
-                          />
-                          <div className="flex items-center gap-3">
-                            <Button
-                              onClick={() => handleSendResponse(escalation._id)}
-                              disabled={
-                                !responseMessage.trim() ||
-                                sending === escalation._id
-                              }
-                              className="bg-blue-600 hover:bg-blue-700"
-                            >
-                              {sending === escalation._id ? (
-                                <>
-                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                  Sending...
-                                </>
-                              ) : (
-                                <>
-                                  <Send className="h-4 w-4 mr-2" />
-                                  Send Response
-                                </>
-                              )}
-                            </Button>
-                            <Button
-                              variant="outline"
-                              onClick={() => setSelectedEscalation(null)}
-                              disabled={sending === escalation._id}
-                            >
-                              Cancel
-                            </Button>
-                          </div>
+                    {/* Header and content */}
+                    <div className="flex items-start gap-3 pr-10">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-medium text-gray-900 truncate">{escalation.guestName}</h3>
+                          {(() => {
+                            const age = getAgeEmphasis(escalation.createdAt);
+                            return <span className={`text-sm ${age.className}`}>{age.label}</span>;
+                          })()}
                         </div>
-                      ) : (
-                        <div className="flex items-center gap-3">
+                        <p className="text-sm text-gray-600 truncate">{escalation.propertyName} • {formatTimestamp(escalation.createdAt)}</p>
+                        <p className="text-sm text-gray-800 mt-2">{escalation.message}</p>
+                      </div>
+                    </div>
+
+                    {/* Response area (when open) */}
+                    {selectedEscalation === escalation._id && (
+                      <div className="mt-3">
+                        <Textarea
+                          value={responseMessage}
+                          onChange={(e) => setResponseMessage(e.target.value)}
+                          placeholder={`Respond to ${escalation.guestName}...`}
+                          rows={3}
+                        />
+                      </div>
+                    )}
+
+                    {/* Bottom actions row */}
+                    <div className="mt-3 flex items-center justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="hover:bg-gray-100"
+                        onClick={() => { setInfoEscalation(escalation); setInfoOpen(true); }}
+                      >
+                        <Info className="h-4 w-4 mr-1" /> Info
+                      </Button>
+                      {selectedEscalation === escalation._id ? (
+                        <>
                           <Button
-                            onClick={() =>
-                              setSelectedEscalation(escalation._id)
-                            }
-                            className="bg-blue-600 hover:bg-blue-700"
+                            variant="ghost"
+                            size="sm"
+                            className="hover:bg-gray-100"
+                            onClick={() => setSelectedEscalation(null)}
+                            disabled={sending === escalation._id}
                           >
-                            Respond to Guest
+                            Cancel
                           </Button>
                           <Button
-                            variant="outline"
-                            onClick={() =>
-                              handleResolveEscalation(escalation._id)
-                            }
-                            disabled={resolving === escalation._id}
+                            size="sm"
+                            onClick={() => handleSendResponse(escalation._id)}
+                            disabled={!responseMessage.trim() || sending === escalation._id}
                           >
-                            {resolving === escalation._id ? (
+                            {sending === escalation._id ? (
                               <>
                                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Resolving...
+                                Send
                               </>
                             ) : (
-                              "Mark as Resolved"
+                              <>
+                                <Send className="h-4 w-4 mr-2" />
+                                Send
+                              </>
                             )}
                           </Button>
-                        </div>
+                        </>
+                      ) : (
+                        <>
+                          <Button
+                            size="sm"
+                            onClick={() => { setSelectedEscalation(escalation._id); setTimeout(() => document.getElementById(`resp-${escalation._id}`)?.scrollIntoView({ behavior: 'smooth', block: 'end' }), 0); }}
+                          >
+                            Respond
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="hover:bg-gray-100"
+                            onClick={() => handleResolveEscalation(escalation._id)}
+                            disabled={resolving === escalation._id}
+                            aria-label="Resolve"
+                            title="Resolve"
+                          >
+                            {resolving === escalation._id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Check className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </>
                       )}
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
@@ -423,44 +432,76 @@ const Escalations = () => {
                   Recently Resolved ({resolvedEscalations.length})
                 </h3>
 
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {resolvedEscalations.map((escalation) => (
-                    <Card
+                    <div
                       key={escalation._id}
-                      className="border-l-4 border-l-green-400 opacity-75"
+                      className="relative bg-white border border-gray-200 rounded-lg p-4 opacity-60"
                     >
-                      <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start space-x-4">
-                            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                              <CheckCircle className="h-6 w-6 text-green-600" />
-                            </div>
-                            <div className="flex-1">
-                              <CardTitle className="text-lg text-gray-900 mb-1">
-                                {escalation.guestName}
-                              </CardTitle>
-                              <p className="text-sm text-gray-600 mb-2">
-                                {escalation.propertyName} •{" "}
-                                {formatTimestamp(escalation.createdAt)}
-                              </p>
-                              <p className="text-gray-700 leading-relaxed">
-                                {escalation.message}
-                              </p>
-                            </div>
+                      {/* Corner avatar overlay */}
+                      <div className="absolute -top-3 -right-3 h-10 w-10 rounded-full ring-2 ring-white shadow bg-green-100 text-green-700 flex items-center justify-center">
+                        <CheckCircle className="h-5 w-5" />
+                      </div>
+                      <div className="flex items-start gap-3 pr-10">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-medium text-gray-900 truncate">{escalation.guestName}</h3>
+                            <span className="text-sm font-semibold text-green-600">Done</span>
                           </div>
-                          <Badge className={getStatusColor(escalation.status)}>
-                            {getStatusIcon(escalation.status)}
-                            <span className="ml-1">Resolved</span>
-                          </Badge>
+                          <p className="text-sm text-gray-600 truncate">{escalation.propertyName} • {formatTimestamp(escalation.createdAt)}</p>
+                          <p className="text-sm text-gray-700 mt-2">{escalation.message}</p>
                         </div>
-                      </CardHeader>
-                    </Card>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
             )}
           </div>
         </div>
+
+        {/* Info Sidebar */}
+        <Sheet open={infoOpen} onOpenChange={setInfoOpen}>
+          <SheetContent side="right" className="w-[340px] sm:w-[380px]">
+            <SheetHeader>
+              <SheetTitle>Escalation details</SheetTitle>
+            </SheetHeader>
+            {infoEscalation && (
+              <div className="mt-4 space-y-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                    {infoEscalation.guestName?.split(" ").map((n) => n[0]).join("")}
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900">{infoEscalation.guestName}</div>
+                    <div className="text-xs text-gray-500">{infoEscalation.propertyName}</div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-lg border p-3">
+                    <div className="text-xs text-gray-500">Priority</div>
+                    <div className="text-sm font-medium capitalize">{infoEscalation.priority || "medium"}</div>
+                  </div>
+                  <div className="rounded-lg border p-3">
+                    <div className="text-xs text-gray-500">Status</div>
+                    <div className="text-sm font-medium capitalize">{infoEscalation.status}</div>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border p-3">
+                  <div className="text-xs text-gray-500">Created</div>
+                  <div className="text-sm font-medium">{formatTimestamp(infoEscalation.createdAt)}</div>
+                </div>
+
+                <div className="rounded-lg border p-3">
+                  <div className="text-xs text-gray-500">Message</div>
+                  <div className="text-sm mt-1 text-gray-800">{infoEscalation.message}</div>
+                </div>
+              </div>
+            )}
+          </SheetContent>
+        </Sheet>
       </div>
     </div>
   );

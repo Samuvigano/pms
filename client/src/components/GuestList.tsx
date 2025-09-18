@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
-import { Search, Bot, User, Clock, MapPin } from "lucide-react";
+import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import airbnbLogo from "@/assets/airbnb.svg";
+import bookingLogo from "@/assets/booking.svg";
+import expediaLogo from "@/assets/expedia.svg";
 
 const PLATFORMS = ["Booking.com", "Airbnb", "Expedia"];
 const NAMES = [
@@ -120,6 +122,19 @@ export const GuestList = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [guests, setGuests] = useState<any[]>([]);
 
+  const platformIconFor = (platform: string) => {
+    switch (platform) {
+      case "Airbnb":
+        return airbnbLogo;
+      case "Booking.com":
+        return bookingLogo;
+      case "Expedia":
+        return expediaLogo;
+      default:
+        return bookingLogo;
+    }
+  };
+
   useEffect(() => {
     async function fetchGuests() {
       try {
@@ -206,46 +221,32 @@ export const GuestList = ({
             key={guest.id}
             onClick={() => onSelectGuest(guest)}
             className={cn(
-              "p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors",
+              "p-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors",
               selectedGuest &&
                 selectedGuest.id === guest.id &&
-                "bg-blue-50 border-blue-200"
+                "bg-gray-50/80 ring-1 ring-gray-200"
             )}
           >
-            <div className="flex items-start space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                {guest.avatar}
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                  {guest.avatar}
+                </div>
+                <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-white border border-gray-200 overflow-hidden">
+                  <img src={platformIconFor(guest.platform)} alt={guest.platform} className="h-full w-full object-contain" />
+                </div>
               </div>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between mb-1">
-                  <h3 className="font-semibold text-gray-900 truncate">
-                    {guest.name}
-                  </h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="font-medium text-gray-900 truncate">{guest.name}</h3>
+                  <span className="ml-2 shrink-0 text-[10px] text-gray-400">
+                    {guest.lastTimestamp ? formatTimestamp(guest.lastTimestamp) : ""}
+                  </span>
                 </div>
-                <div className="flex items-center space-x-2 mb-2">
-                  <Badge variant="outline" className="text-xs">
-                    Room {guest.room}
-                  </Badge>
-                  <Badge variant="outline" className="text-xs">
-                    {guest.platform}
-                  </Badge>
-                </div>
-                <p className="text-sm text-gray-600 truncate mb-2">
+                <p className="text-xs text-gray-600 truncate mt-0.5">
                   {guest.lastMessage || "No messages yet"}
                 </p>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500">
-                    {guest.lastTimestamp
-                      ? formatTimestamp(guest.lastTimestamp)
-                      : ""}
-                  </span>
-                </div>
-                <div className="mt-2 text-xs text-gray-500 flex items-center space-x-1">
-                  <MapPin className="h-3 w-3" />
-                  <span>
-                    {guest.checkIn} - {guest.checkOut}
-                  </span>
-                </div>
+                <div className="mt-1 text-[11px] text-gray-400">Room {guest.room}</div>
               </div>
             </div>
           </div>

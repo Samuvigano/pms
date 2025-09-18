@@ -7,9 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/components/ui/use-toast';
-import { Copy } from 'lucide-react';
+import { Copy, ChevronDown, X } from 'lucide-react';
+import lampImage from '@/assets/lamp.jpg';
 
 interface TicketRow {
 	id: string;
@@ -26,6 +29,8 @@ const Tickets = () => {
 	const [error, setError] = useState<string | null>(null);
 	const [selectedTicket, setSelectedTicket] = useState<TicketRow | null>(null);
 	const [sheetOpen, setSheetOpen] = useState(false);
+	const [phoneDropdownOpen, setPhoneDropdownOpen] = useState(false);
+	const [imageModalOpen, setImageModalOpen] = useState(false);
 	const { toast } = useToast();
 
 	useEffect(() => {
@@ -97,8 +102,7 @@ const Tickets = () => {
 				<Header />
 				<div className="flex-1 overflow-auto p-6">
 					<div className="mb-6">
-						<h2 className="text-2xl font-semibold text-black mb-2">Tickets</h2>
-						<p className="text-gray-600">View and track support tickets from guests</p>
+						<h2 className="text-2xl font-semibold text-black mb-2">Tickets | Venezia Nord</h2>
 					</div>
 
 					{error && (
@@ -107,42 +111,53 @@ const Tickets = () => {
 						</div>
 					)}
 
-					{/* Info: Phone numbers to open tickets */}
+					{/* Phone numbers dropdown */}
 					<div className="mb-6 rounded-lg border border-black/10 bg-white">
-						<div className="p-4">
-							<h3 className="text-sm font-semibold text-black mb-3">Open a ticket via SMS</h3>
-							<div className="space-y-3">
-								<div className="flex items-center justify-between">
-									<div>
-										<p className="text-sm font-medium text-black">+1 (555) 194-5342</p>
-										<p className="text-xs text-zinc-500">maintenance number</p>
+						<Collapsible open={phoneDropdownOpen} onOpenChange={setPhoneDropdownOpen}>
+							<CollapsibleTrigger asChild>
+								<div className="p-4 cursor-pointer hover:bg-gray-50 transition-colors">
+									<div className="flex items-center justify-between">
+										<h3 className="text-sm font-semibold text-black">Open a ticket via SMS</h3>
+										<ChevronDown className={`h-4 w-4 transition-transform ${phoneDropdownOpen ? 'rotate-180' : ''}`} />
 									</div>
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={() => handleCopy('+1 (555) 194-5342')}
-										className="border-black text-black hover:bg-black hover:text-white"
-									>
-										<Copy className="h-4 w-4 mr-1" /> Copy
-									</Button>
 								</div>
+							</CollapsibleTrigger>
+							<CollapsibleContent>
+								<div className="px-4 pb-4 border-t border-black/10">
+									<div className="space-y-3 pt-3">
+										<div className="flex items-center justify-between">
+											<div>
+												<p className="text-sm font-medium text-black">+1 (555) 194-5342</p>
+												<p className="text-xs text-zinc-500">maintenance number</p>
+											</div>
+											<Button
+												variant="outline"
+												size="sm"
+												onClick={() => handleCopy('+1 (555) 194-5342')}
+												className="border-black text-black hover:bg-black hover:text-white"
+											>
+												<Copy className="h-4 w-4 mr-1" /> Copy
+											</Button>
+										</div>
 
-								<div className="flex items-center justify-between">
-									<div>
-										<p className="text-sm font-medium text-black">+1 (571) 624-2105</p>
-										<p className="text-xs text-zinc-500">housekeeper number</p>
+										<div className="flex items-center justify-between">
+											<div>
+												<p className="text-sm font-medium text-black">+1 (571) 624-2105</p>
+												<p className="text-xs text-zinc-500">housekeeper number</p>
+											</div>
+											<Button
+												variant="outline"
+												size="sm"
+												onClick={() => handleCopy('+1 (571) 624-2105')}
+												className="border-black text-black hover:bg-black hover:text-white"
+											>
+												<Copy className="h-4 w-4 mr-1" /> Copy
+											</Button>
+										</div>
 									</div>
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={() => handleCopy('+1 (571) 624-2105')}
-										className="border-black text-black hover:bg-black hover:text-white"
-									>
-										<Copy className="h-4 w-4 mr-1" /> Copy
-									</Button>
 								</div>
-							</div>
-						</div>
+							</CollapsibleContent>
+						</Collapsible>
 					</div>
 
 					<Card className="border border-black/10 shadow-none">
@@ -232,6 +247,20 @@ const Tickets = () => {
 								<span className="text-xs text-zinc-500">{new Date(selectedTicket.created_at).toLocaleString()}</span>
 							</div>
 
+							{/* Image Section */}
+							<div className="space-y-2">
+								<h4 className="text-sm font-medium text-zinc-500">Related Image</h4>
+								<div className="rounded-lg overflow-hidden border border-black/10 cursor-pointer hover:opacity-80 transition-opacity">
+									<img 
+										src={lampImage} 
+										alt="Ticket related image" 
+										className="w-full h-48 object-cover"
+										onClick={() => setImageModalOpen(true)}
+									/>
+								</div>
+								<p className="text-xs text-zinc-400">Click image to view full size</p>
+							</div>
+
 							<div className="space-y-2">
 								<h4 className="text-sm font-medium text-zinc-500">Description</h4>
 								<p className="text-[15px] leading-relaxed text-black">
@@ -272,6 +301,27 @@ const Tickets = () => {
 					)}
 				</SheetContent>
 			</Sheet>
+
+			{/* Image Modal */}
+			<Dialog open={imageModalOpen} onOpenChange={setImageModalOpen}>
+				<DialogContent className="max-w-4xl max-h-[90vh] p-0 bg-black/95 border-0">
+					<div className="relative">
+						<Button
+							variant="ghost"
+							size="sm"
+							onClick={() => setImageModalOpen(false)}
+							className="absolute top-4 right-4 z-10 text-white hover:bg-white/20 h-8 w-8 p-0"
+						>
+							<X className="h-4 w-4" />
+						</Button>
+						<img 
+							src={lampImage} 
+							alt="Ticket related image - full size" 
+							className="w-full h-auto max-h-[90vh] object-contain"
+						/>
+					</div>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 };

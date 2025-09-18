@@ -1,19 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Send,
   Bot,
   User,
   Phone,
-  Mail,
-  MapPin,
-  Calendar,
-  MoreVertical,
+  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import whatsappLogo from "@/assets/whatsapp.svg";
 import airbnbLogo from "@/assets/airbnb.svg";
@@ -22,6 +17,7 @@ import instagramLogo from "@/assets/instagram.svg";
 import telegramLogo from "@/assets/telegram.svg";
 import expediaLogo from "@/assets/expedia.svg";
 import { Textarea } from "@/components/ui/textarea";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 interface Message {
   id: string;
@@ -44,6 +40,30 @@ export const MessageCenter = ({
 }: MessageCenterProps) => {
   const [newMessage, setNewMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
+  const [infoOpen, setInfoOpen] = useState(false);
+  const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
+  const messagesContainerRef = useRef<HTMLDivElement | null>(null);
+
+  const platforms = [
+    { id: "WhatsApp", icon: whatsappLogo },
+    { id: "Airbnb", icon: airbnbLogo },
+    { id: "Booking.com", icon: bookingLogo },
+    { id: "Instagram", icon: instagramLogo },
+    { id: "Telegram", icon: telegramLogo },
+    { id: "Expedia", icon: expediaLogo },
+  ];
+
+  useEffect(() => {
+    if (selectedGuest?.platform) {
+      setSelectedPlatform(selectedGuest.platform);
+    }
+  }, [selectedGuest]);
+
+  useEffect(() => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
+  }, [selectedGuest, messages]);
 
   // Fetch messages when selected guest changes
   useEffect(() => {
@@ -152,18 +172,15 @@ export const MessageCenter = ({
               <h2 className="font-semibold text-gray-900">
                 {selectedGuest.name}
               </h2>
-              <div className="flex items-center space-x-2">
-                <Badge variant="outline" className="text-xs">
-                  Room {selectedGuest.room}
-                </Badge>
-                <Badge variant="outline" className="text-xs">
-                  {selectedGuest.platform}
-                </Badge>
-              </div>
             </div>
           </div>
-          {/* AI Control Toggle */}
+          {/* Right controls: selected platform, AI toggle, info */}
           <div className="flex items-center space-x-4">
+            {selectedPlatform && (
+              <div className="h-8 w-8 rounded-full overflow-hidden border border-gray-200" title={selectedPlatform} aria-label={selectedPlatform}>
+                <img src={platforms.find((p) => p.id === selectedPlatform)?.icon || ""} alt={selectedPlatform} className="h-full w-full object-contain" />
+              </div>
+            )}
             <div className="flex items-center space-x-2">
               <User className="h-4 w-4 text-gray-500" />
               <Switch
@@ -173,28 +190,14 @@ export const MessageCenter = ({
               />
               <Bot className="h-4 w-4 text-blue-500" />
             </div>
-            <Badge
-              className={cn(
-                "flex items-center space-x-1",
-                aiEnabled
-                  ? "bg-blue-100 text-blue-800"
-                  : "bg-green-100 text-green-800"
-              )}
-            >
-              {aiEnabled ? (
-                <Bot className="h-3 w-3" />
-              ) : (
-                <User className="h-3 w-3" />
-              )}
-              <span>{aiEnabled ? "AI Active" : "Manual Control"}</span>
-            </Badge>
-            <Button variant="ghost" size="sm">
-              <MoreVertical className="h-4 w-4" />
+            <Button variant="ghost" size="icon" onClick={() => setInfoOpen(true)}>
+              <Info className="h-4 w-4" />
             </Button>
           </div>
         </div>
+
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+        <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
           {messages.map((message) => (
             <div
               key={message.id}
@@ -297,63 +300,80 @@ export const MessageCenter = ({
           </div>
         </div>
       </div>
-      {/* Social Media Platform List */}
-      <div className="w-80 bg-white border-l border-gray-200 p-4">
-        <h3 className="font-semibold text-gray-900 mb-4">Select Platform</h3>
-        <div className="space-y-4">
-          {/* WhatsApp */}
-          <div className="flex items-center p-4 bg-white rounded-xl border border-gray-200 space-x-4 relative">
-            <img src={whatsappLogo} alt="WhatsApp" className="w-10 h-10" />
-            <div className="flex-1">
-              <div className="font-semibold text-gray-900">WhatsApp</div>
-              <div className="text-gray-500 text-sm">Start messaging</div>
+
+      {/* Info Sidebar */}
+      <Sheet open={infoOpen} onOpenChange={setInfoOpen}>
+        <SheetContent side="right" className="w-[340px] sm:w-[380px]">
+          <SheetHeader>
+            <SheetTitle>Conversation info</SheetTitle>
+          </SheetHeader>
+          <div className="mt-4 space-y-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-semibold">
+                {selectedGuest.avatar}
+              </div>
+              <div>
+                <div className="font-semibold text-gray-900">{selectedGuest.name}</div>
+                <div className="text-xs text-gray-500">{selectedGuest.phone}</div>
+              </div>
             </div>
-            <span className="absolute right-4 top-4 bg-gray-900 text-white text-xs px-3 py-1 rounded-full">
-              Active
-            </span>
-          </div>
-          {/* Airbnb */}
-          <div className="flex items-center p-4 bg-white rounded-xl border border-gray-200 space-x-4 relative">
-            <img src={airbnbLogo} alt="Airbnb" className="w-10 h-10" />
-            <div className="flex-1">
-              <div className="font-semibold text-gray-900">Airbnb</div>
-              <div className="text-gray-500 text-sm">Currently active</div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-lg border p-3">
+                <div className="text-xs text-gray-500">Room</div>
+                <div className="text-sm font-medium">{selectedGuest.room}</div>
+              </div>
+              <div className="rounded-lg border p-3">
+                <div className="text-xs text-gray-500">Platform</div>
+                <div className="text-sm font-medium">{selectedPlatform || selectedGuest.platform}</div>
+              </div>
+            </div>
+
+            <div className="rounded-lg border p-3">
+              <div className="text-xs text-gray-500">AI Status</div>
+              <div className="mt-1">
+                <Badge className={cn(
+                  "flex items-center space-x-1",
+                  aiEnabled
+                    ? "bg-blue-100 text-blue-800"
+                    : "bg-green-100 text-green-800"
+                )}>
+                  {aiEnabled ? <Bot className="h-3 w-3" /> : <User className="h-3 w-3" />}
+                  <span className="ml-1">{aiEnabled ? "AI Active" : "Manual Control"}</span>
+                </Badge>
+              </div>
+            </div>
+
+            <div className="rounded-lg border p-3">
+              <div className="text-xs text-gray-500 mb-2">Platforms</div>
+              <div className="flex flex-wrap gap-2">
+                {platforms.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => setSelectedPlatform(p.id)}
+                    className={cn(
+                      "h-9 w-9 rounded-full overflow-hidden border transition",
+                      selectedPlatform === p.id
+                        ? "ring-2 ring-blue-500 border-blue-500"
+                        : "border-gray-200 hover:border-gray-300"
+                    )}
+                    title={p.id}
+                    aria-label={p.id}
+                  >
+                    <img src={p.icon} alt={p.id} className="h-full w-full object-contain" />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-lg border p-3">
+              <div className="flex items-center text-sm text-gray-700">
+                <Phone className="h-4 w-4 mr-2 text-gray-500" /> {selectedGuest.phone}
+              </div>
             </div>
           </div>
-          {/* Booking.com */}
-          <div className="flex items-center p-4 bg-white rounded-xl border border-gray-200 space-x-4">
-            <img src={bookingLogo} alt="Booking.com" className="w-10 h-10" />
-            <div className="flex-1">
-              <div className="font-semibold text-gray-900">Booking.com</div>
-              <div className="text-gray-500 text-sm">Start messaging</div>
-            </div>
-          </div>
-          {/* Instagram */}
-          <div className="flex items-center p-4 bg-white rounded-xl border border-gray-200 space-x-4">
-            <img src={instagramLogo} alt="Instagram" className="w-10 h-10" />
-            <div className="flex-1">
-              <div className="font-semibold text-gray-900">Instagram</div>
-              <div className="text-gray-500 text-sm">Start messaging</div>
-            </div>
-          </div>
-          {/* Telegram */}
-          <div className="flex items-center p-4 bg-white rounded-xl border border-gray-200 space-x-4">
-            <img src={telegramLogo} alt="Telegram" className="w-10 h-10" />
-            <div className="flex-1">
-              <div className="font-semibold text-gray-900">Telegram</div>
-              <div className="text-gray-500 text-sm">Start messaging</div>
-            </div>
-          </div>
-          {/* Expedia */}
-          <div className="flex items-center p-4 bg-white rounded-xl border border-gray-200 space-x-4">
-            <img src={expediaLogo} alt="Expedia" className="w-10 h-10" />
-            <div className="flex-1">
-              <div className="font-semibold text-gray-900">Expedia</div>
-              <div className="text-gray-500 text-sm">Start messaging</div>
-            </div>
-          </div>
-        </div>
-      </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };

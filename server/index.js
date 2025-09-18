@@ -7,6 +7,7 @@ import axios from "axios";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
+import OpenAI from "openai";
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -253,11 +254,53 @@ app.post("/api/v1/escalations/resolve", authenticate, async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+// OpenAI Chat Completions streaming endpoint (no auth for demo)
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+app.post("/api/v1/ai/stream", async (req, res) => {
+  try {
+    const { prompt } = req.body || {};
+    if (!prompt || typeof prompt !== "string") {
+      return res.status(400).json({ error: "Missing 'prompt' string in body" });
+    }
+
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+    res.setHeader("Cache-Control", "no-cache, no-transform");
+    res.setHeader("Connection", "keep-alive");
+
+    const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+
+    const stream = await openai.chat.completions.create({
+      model,
+      messages: [{ role: "user", content: prompt }],
+      stream: true,
+    });
+
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content || "";
+      if (content) {
+        res.write(content);
+      }
+    }
+
+    res.end();
+  } catch (error) {
+    console.error("OpenAI stream error:", error);
+    if (!res.headersSent) {
+      res.status(500).json({ error: "Failed to stream response" });
+    } else {
+      try {
+        res.write("\n[error]: Failed to stream response");
+        res.end();
+      } catch (_) {}
+    }
+  }
 });
 
 // Catch-all route to serve the frontend for any route that doesn't match API routes
 app.get(/^(?!\/api\/).*/, (req, res) => {
   res.sendFile(path.join(__dirname, "../client/dist/index.html"));
+});
+
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
