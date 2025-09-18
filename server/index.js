@@ -25,7 +25,7 @@ const connectDB = async () => {
 
 connectDB();
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3040;
 
 const app = express();
 app.use(
