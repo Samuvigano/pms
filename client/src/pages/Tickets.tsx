@@ -102,7 +102,7 @@ const Tickets = () => {
 				<Header />
 				<div className="flex-1 overflow-auto p-6">
 					<div className="mb-6">
-						<h2 className="text-2xl font-semibold text-black mb-2">Tickets | Venezia Nord</h2>
+						<h2 className="text-2xl font-semibold text-black mb-2">Tickets</h2>
 					</div>
 
 					{error && (
