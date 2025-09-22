@@ -14,6 +14,13 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   User,
   Mail,
   Phone,
@@ -21,11 +28,27 @@ import {
   Building2,
   Calendar,
   Settings,
+  Link,
+  Unlink,
+  Languages,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
+
+// Import platform logos
+import airbnbLogo from "@/assets/airbnb.svg";
+import bookingLogo from "@/assets/booking.svg";
+import expediaLogo from "@/assets/expedia.svg";
+import instagramLogo from "@/assets/instagram.svg";
+import telegramLogo from "@/assets/telegram.svg";
+import whatsappLogo from "@/assets/whatsapp.svg";
+
+// Import platform URLs
+import platformUrls from "@/config/platformUrls.json";
 
 const Profile = () => {
   const { user } = useAuth();
+  const { language, changeLanguage, t } = useLanguage();
 
   const [userInfo, setUserInfo] = useState({
     name: user?.name || "User",
@@ -39,9 +62,57 @@ const Profile = () => {
 
   const [isEditing, setIsEditing] = useState(false);
 
+  // Platform connection state - all disconnected by default until DB implementation
+  const [platformConnections, setPlatformConnections] = useState({
+    airbnb: { connected: false, name: t("platforms.airbnb") },
+    booking: { connected: false, name: t("platforms.booking") },
+    expedia: { connected: false, name: t("platforms.expedia") },
+    instagram: { connected: false, name: t("platforms.instagram") },
+    telegram: { connected: false, name: t("platforms.telegram") },
+    whatsapp: { connected: false, name: t("platforms.whatsapp") },
+  });
+
+  const platformLogos = {
+    airbnb: airbnbLogo,
+    booking: bookingLogo,
+    expedia: expediaLogo,
+    instagram: instagramLogo,
+    telegram: telegramLogo,
+    whatsapp: whatsappLogo,
+  };
+
+  const availableLanguages = [
+    { code: 'en', name: t("common.english") },
+    { code: 'it', name: t("common.italian") },
+  ];
+
   const handleSave = () => {
     setIsEditing(false);
     // Here you would typically save to backend
+  };
+
+  const handlePlatformConnect = (platform) => {
+    // Open platform connection URL in new tab
+    const url = platformUrls[platform];
+    if (url) {
+      window.open(url, '_blank');
+    }
+    // TODO: After successful connection, update the connection status in DB
+  };
+
+  const handlePlatformDisconnect = (platform) => {
+    setPlatformConnections(prev => ({
+      ...prev,
+      [platform]: {
+        ...prev[platform],
+        connected: false
+      }
+    }));
+    // TODO: Handle actual disconnection logic with DB
+  };
+
+  const handleLanguageChange = (newLanguage) => {
+    changeLanguage(newLanguage);
   };
 
   return (
@@ -54,10 +125,10 @@ const Profile = () => {
             {/* Header */}
             <div className="mb-6">
               <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-                User Profile
+                {t("profile.title")}
               </h2>
               <p className="text-gray-600">
-                Manage your account information and preferences
+                {t("profile.subtitle")}
               </p>
             </div>
 
@@ -66,10 +137,10 @@ const Profile = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="h-5 w-5 text-blue-600" />
-                  Profile Information
+                  {t("profile.profileInformation")}
                 </CardTitle>
                 <CardDescription>
-                  Your basic account information
+                  {t("profile.profileDescription")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -86,7 +157,7 @@ const Profile = () => {
                   <div className="flex-1 space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="name">Full Name</Label>
+                        <Label htmlFor="name">{t("profile.fullName")}</Label>
                         <Input
                           id="name"
                           value={userInfo.name}
@@ -98,7 +169,7 @@ const Profile = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
+                        <Label htmlFor="email">{t("profile.email")}</Label>
                         <Input
                           id="email"
                           type="email"
@@ -111,7 +182,7 @@ const Profile = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="phone">Phone</Label>
+                        <Label htmlFor="phone">{t("profile.phone")}</Label>
                         <Input
                           id="phone"
                           value={userInfo.phone}
@@ -123,7 +194,7 @@ const Profile = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="company">Company</Label>
+                        <Label htmlFor="company">{t("profile.company")}</Label>
                         <Input
                           id="company"
                           value={userInfo.company}
@@ -138,7 +209,7 @@ const Profile = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="location">Location</Label>
+                        <Label htmlFor="location">{t("profile.location")}</Label>
                         <Input
                           id="location"
                           value={userInfo.location}
@@ -153,7 +224,7 @@ const Profile = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="role">Role</Label>
+                        <Label htmlFor="role">{t("profile.role")}</Label>
                         <Input
                           id="role"
                           value={userInfo.role}
@@ -169,16 +240,16 @@ const Profile = () => {
                       {!isEditing ? (
                         <Button onClick={() => setIsEditing(true)}>
                           <Settings className="h-4 w-4 mr-2" />
-                          Edit Profile
+                          {t("profile.editProfile")}
                         </Button>
                       ) : (
                         <div className="flex gap-2">
-                          <Button onClick={handleSave}>Save Changes</Button>
+                          <Button onClick={handleSave}>{t("profile.saveChanges")}</Button>
                           <Button
                             variant="outline"
                             onClick={() => setIsEditing(false)}
                           >
-                            Cancel
+                            {t("profile.cancel")}
                           </Button>
                         </div>
                       )}
@@ -188,12 +259,41 @@ const Profile = () => {
               </CardContent>
             </Card>
 
+            {/* Language Selection */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Languages className="h-5 w-5 text-blue-600" />
+                  {t("profile.language")}
+                </CardTitle>
+                <CardDescription>
+                  {t("profile.languageDescription")}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="max-w-xs">
+                  <Select value={language} onValueChange={handleLanguageChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t("profile.language")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableLanguages.map((lang) => (
+                        <SelectItem key={lang.code} value={lang.code}>
+                          {lang.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Account Stats */}
             <Card>
               <CardHeader>
-                <CardTitle>Account Statistics</CardTitle>
+                <CardTitle>{t("profile.accountStatistics")}</CardTitle>
                 <CardDescription>
-                  Your activity and engagement overview
+                  {t("profile.accountStatsDescription")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -201,13 +301,13 @@ const Profile = () => {
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
                     <Building2 className="h-8 w-8 text-blue-600 mx-auto mb-2" />
                     <p className="text-2xl font-bold text-gray-900">4</p>
-                    <p className="text-sm text-gray-600">Properties Managed</p>
+                    <p className="text-sm text-gray-600">{t("profile.propertiesManaged")}</p>
                   </div>
 
                   <div className="text-center p-4 bg-green-50 rounded-lg">
                     <Mail className="h-8 w-8 text-green-600 mx-auto mb-2" />
                     <p className="text-2xl font-bold text-gray-900">142</p>
-                    <p className="text-sm text-gray-600">Messages This Month</p>
+                    <p className="text-sm text-gray-600">{t("profile.messagesThisMonth")}</p>
                   </div>
 
                   <div className="text-center p-4 bg-purple-50 rounded-lg">
@@ -215,8 +315,60 @@ const Profile = () => {
                     <p className="text-2xl font-bold text-gray-900">
                       {userInfo.joinDate}
                     </p>
-                    <p className="text-sm text-gray-600">Member Since</p>
+                    <p className="text-sm text-gray-600">{t("profile.memberSince")}</p>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Platform Connections */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Link className="h-5 w-5 text-blue-600" />
+                  {t("profile.platformConnections")}
+                </CardTitle>
+                <CardDescription>
+                  {t("profile.platformConnectionsDescription")}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {Object.entries(platformConnections).map(([key, platform]) => (
+                    <div
+                      key={key}
+                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={platformLogos[key]}
+                          alt={platform.name}
+                          className="w-8 h-8 object-contain"
+                        />
+                        <div>
+                          <p className="font-medium text-gray-900">{t(`platforms.${key}`)}</p>
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => platform.connected ? handlePlatformDisconnect(key) : handlePlatformConnect(key)}
+                        variant={platform.connected ? "outline" : "default"}
+                        size="sm"
+                        className={platform.connected ? "text-red-600 border-red-200 hover:bg-red-50" : ""}
+                      >
+                        {platform.connected ? (
+                          <>
+                            <Unlink className="h-4 w-4 mr-1" />
+                            {t("profile.disconnect")}
+                          </>
+                        ) : (
+                          <>
+                            <Link className="h-4 w-4 mr-1" />
+                            {t("profile.connect")}
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
@@ -224,9 +376,9 @@ const Profile = () => {
             {/* Quick Contact Info */}
             <Card>
               <CardHeader>
-                <CardTitle>Contact Information</CardTitle>
+                <CardTitle>{t("profile.contactInformation")}</CardTitle>
                 <CardDescription>
-                  How guests and team members can reach you
+                  {t("profile.contactDescription")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -234,19 +386,19 @@ const Profile = () => {
                   <div className="flex items-center gap-3">
                     <Mail className="h-5 w-5 text-gray-500" />
                     <span className="text-gray-900">{userInfo.email}</span>
-                    <Badge variant="outline">Primary</Badge>
+                    <Badge variant="outline">{t("profile.primary")}</Badge>
                   </div>
 
                   <div className="flex items-center gap-3">
                     <Phone className="h-5 w-5 text-gray-500" />
                     <span className="text-gray-900">{userInfo.phone}</span>
-                    <Badge variant="outline">Work</Badge>
+                    <Badge variant="outline">{t("profile.work")}</Badge>
                   </div>
 
                   <div className="flex items-center gap-3">
                     <MapPin className="h-5 w-5 text-gray-500" />
                     <span className="text-gray-900">{userInfo.location}</span>
-                    <Badge variant="outline">Office</Badge>
+                    <Badge variant="outline">{t("profile.office")}</Badge>
                   </div>
                 </div>
               </CardContent>

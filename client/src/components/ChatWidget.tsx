@@ -3,6 +3,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MessageCircle } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ChatMessage {
 	role: "user" | "assistant";
@@ -10,6 +11,7 @@ interface ChatMessage {
 }
 
 const ChatWidget = () => {
+	const { t } = useLanguage();
 	const [isOpen, setIsOpen] = useState(false);
 	const [input, setInput] = useState("");
 	const [isSending, setIsSending] = useState(false);
@@ -66,12 +68,12 @@ const ChatWidget = () => {
 		} catch (err) {
 			setMessages((prev) => [
 				...prev,
-				{ role: "assistant", content: "Sorry, I couldn't complete that request." },
+				{ role: "assistant", content: t("chat.errorMessage") },
 			]);
 		} finally {
 			setIsSending(false);
 		}
-	}, [input, isSending]);
+	}, [input, isSending, t]);
 
 	const onKeyDown = useCallback(
 		(e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -97,14 +99,14 @@ const ChatWidget = () => {
 				<SheetContent side="right" className="w-[380px] sm:w-[420px] p-0">
 					<div className="flex h-full flex-col">
 						<SheetHeader className="px-4 py-3 border-b">
-							<SheetTitle>AI Assistant</SheetTitle>
+							<SheetTitle>{t("chat.title")}</SheetTitle>
 							<SheetDescription>
-								Chat with AI to get help with your property management tasks
+								{t("chat.description")}
 							</SheetDescription>
 						</SheetHeader>
 						<div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-background">
 							{messages.length === 0 ? (
-								<div className="text-sm text-muted-foreground">Ask me anything about your dashboard or data.</div>
+								<div className="text-sm text-muted-foreground">{t("chat.emptyState")}</div>
 							) : (
 								messages.map((m, idx) => (
 									<div key={idx} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
@@ -125,14 +127,14 @@ const ChatWidget = () => {
 						<div className="border-t p-3">
 							<div className="flex items-center gap-2">
 								<Input
-									placeholder="Type a message..."
+									placeholder={t("chat.placeholder")}
 									value={input}
 									onChange={(e) => setInput(e.target.value)}
 									onKeyDown={onKeyDown}
 									disabled={isSending}
 								/>
 								<Button onClick={handleSend} disabled={isSending || !input.trim()}>
-									Send
+									{t("chat.send")}
 								</Button>
 							</div>
 						</div>

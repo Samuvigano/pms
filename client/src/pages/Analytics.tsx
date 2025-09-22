@@ -22,25 +22,28 @@ import {
   Clock,
 } from "lucide-react";
 import { useState, useEffect } from "react";
-
-const sentimentData = [
-  { name: "Positive", value: 75, color: "#10B981" },
-  { name: "Neutral", value: 15, color: "#F59E0B" },
-  { name: "Negative", value: 10, color: "#EF4444" },
-];
-
-const requestsData = [
-  { request: "Housekeeping", count: 45, percentage: 30 },
-  { request: "Maintenance", count: 30, percentage: 20 },
-  { request: "Check-in/out", count: 38, percentage: 25 },
-  { request: "Amenities", count: 23, percentage: 15 },
-  { request: "Local Info", count: 15, percentage: 10 },
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Analytics = () => {
+  const { t } = useLanguage();
   const [analyticsData, setAnalyticsData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Dynamic chart data based on language
+  const sentimentData = [
+    { name: t("analytics.positive"), value: 75, color: "#10B981" },
+    { name: t("analytics.neutral"), value: 15, color: "#F59E0B" },
+    { name: t("analytics.negative"), value: 10, color: "#EF4444" },
+  ];
+
+  const requestsData = [
+    { request: t("analytics.housekeeping"), count: 45, percentage: 30 },
+    { request: t("analytics.maintenance"), count: 30, percentage: 20 },
+    { request: t("analytics.checkInOut"), count: 38, percentage: 25 },
+    { request: t("analytics.amenities"), count: 23, percentage: 15 },
+    { request: t("analytics.localInfo"), count: 15, percentage: 10 },
+  ];
 
   useEffect(() => {
     const fetchAnalytics = async () => {
@@ -79,7 +82,7 @@ const Analytics = () => {
           <Header />
           <div className="flex-1 overflow-auto p-6">
             <div className="flex items-center justify-center h-full">
-              <div className="text-lg">Loading analytics...</div>
+              <div className="text-lg">{t("analytics.loadingAnalytics")}</div>
             </div>
           </div>
         </div>
@@ -95,7 +98,7 @@ const Analytics = () => {
           <Header />
           <div className="flex-1 overflow-auto p-6">
             <div className="flex items-center justify-center h-full">
-              <div className="text-lg text-red-600">Error: {error}</div>
+              <div className="text-lg text-red-600">{t("analytics.error")}: {error}</div>
             </div>
           </div>
         </div>
@@ -111,10 +114,10 @@ const Analytics = () => {
         <div className="flex-1 overflow-auto p-6">
           <div className="mb-6">
             <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-              Analytics Dashboard
+              {t("analytics.title")}
             </h2>
             <p className="text-gray-600">
-              Track your property performance and guest satisfaction
+              {t("analytics.subtitle")}
             </p>
           </div>
 
@@ -123,7 +126,7 @@ const Analytics = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Total Messages
+                  {t("analytics.totalMessages")}
                 </CardTitle>
                 <MessageCircle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
@@ -132,7 +135,7 @@ const Analytics = () => {
                   {analyticsData?.totalMessages?.toLocaleString() || "0"}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  All time messages
+                  {t("analytics.allTimeMessages")}
                 </p>
               </CardContent>
             </Card>
@@ -140,7 +143,7 @@ const Analytics = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Response Time
+                  {t("analytics.responseTime")}
                 </CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
@@ -149,7 +152,7 @@ const Analytics = () => {
                   {analyticsData?.responseTime?.toFixed(1) || "0"} min
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Average resolution time
+                  {t("analytics.averageResolutionTime")}
                 </p>
               </CardContent>
             </Card>
@@ -157,7 +160,7 @@ const Analytics = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Total Users
+                  {t("analytics.totalUsers")}
                 </CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
@@ -165,14 +168,14 @@ const Analytics = () => {
                 <div className="text-2xl font-bold">
                   {analyticsData?.totalUsers || "0"}
                 </div>
-                <p className="text-xs text-muted-foreground">Unique guests</p>
+                <p className="text-xs text-muted-foreground">{t("analytics.uniqueGuests")}</p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Total Escalations
+                  {t("analytics.totalEscalations")}
                 </CardTitle>
                 <AlertTriangle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
@@ -181,8 +184,7 @@ const Analytics = () => {
                   {analyticsData?.totalEscalations || "0"}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {analyticsData?.totalPendingEscalations || "0"} pending
-                  resolution
+                  {analyticsData?.totalPendingEscalations || "0"} {t("analytics.pendingResolution")}
                 </p>
               </CardContent>
             </Card>
@@ -193,7 +195,7 @@ const Analytics = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Messages Sent
+                  {t("analytics.messagesSent")}
                 </CardTitle>
                 <Send className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
@@ -202,7 +204,7 @@ const Analytics = () => {
                   {analyticsData?.totalMessagesSent?.toLocaleString() || "0"}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Outbound messages
+                  {t("analytics.outboundMessages")}
                 </p>
               </CardContent>
             </Card>
@@ -210,7 +212,7 @@ const Analytics = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Messages Received
+                  {t("analytics.messagesReceived")}
                 </CardTitle>
                 <Inbox className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
@@ -220,7 +222,7 @@ const Analytics = () => {
                     "0"}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Inbound messages
+                  {t("analytics.inboundMessages")}
                 </p>
               </CardContent>
             </Card>
@@ -228,7 +230,7 @@ const Analytics = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Resolved Escalations
+                  {t("analytics.resolvedEscalations")}
                 </CardTitle>
                 <CheckCircle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
@@ -237,7 +239,7 @@ const Analytics = () => {
                   {analyticsData?.totalResolvedEscalations || "0"}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Successfully resolved
+                  {t("analytics.successfullyResolved")}
                 </p>
               </CardContent>
             </Card>
@@ -245,7 +247,7 @@ const Analytics = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Pending Escalations
+                  {t("analytics.pendingEscalations")}
                 </CardTitle>
                 <Clock className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
@@ -254,7 +256,7 @@ const Analytics = () => {
                   {analyticsData?.totalPendingEscalations || "0"}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Awaiting resolution
+                  {t("analytics.awaitingResolution")}
                 </p>
               </CardContent>
             </Card>
@@ -265,7 +267,7 @@ const Analytics = () => {
             {/* Sentiment Analysis */}
             <Card>
               <CardHeader>
-                <CardTitle>Message Sentiment Analysis</CardTitle>
+                <CardTitle>{t("analytics.messageSentimentAnalysis")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="w-full h-[300px] flex items-center justify-center">
@@ -297,7 +299,7 @@ const Analytics = () => {
             {/* Most Requested Services */}
             <Card>
               <CardHeader>
-                <CardTitle>Most Requested Services</CardTitle>
+                <CardTitle>{t("analytics.mostRequestedServices")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="w-full h-[300px]">

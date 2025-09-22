@@ -13,6 +13,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/components/ui/use-toast';
 import { Copy, ChevronDown, X } from 'lucide-react';
 import lampImage from '@/assets/lamp.jpg';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface TicketRow {
 	id: string;
@@ -24,6 +25,7 @@ interface TicketRow {
 }
 
 const Tickets = () => {
+	const { t } = useLanguage();
 	const [tickets, setTickets] = useState<TicketRow[]>([]);
 	const [loading, setLoading] = useState<boolean>(false);
 	const [error, setError] = useState<string | null>(null);
@@ -75,7 +77,7 @@ const Tickets = () => {
 	};
 
 	const truncateText = (text: string | null, maxLength: number = 50) => {
-		if (!text) return 'No description';
+		if (!text) return t("tickets.noDescription");
 		return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
 	};
 
@@ -89,9 +91,9 @@ const Tickets = () => {
 	const handleCopy = async (value: string) => {
 		try {
 			await navigator.clipboard.writeText(value);
-			toast({ title: 'Copied', description: `${value} copied to clipboard` });
+			toast({ title: t("tickets.copied"), description: `${value} ${t("tickets.copiedToClipboard")}` });
 		} catch (err) {
-			toast({ title: 'Copy failed', description: 'Could not copy to clipboard' });
+			toast({ title: t("tickets.copyFailed"), description: t("tickets.couldNotCopy") });
 		}
 	};
 
@@ -102,7 +104,7 @@ const Tickets = () => {
 				<Header />
 				<div className="flex-1 overflow-auto p-6">
 					<div className="mb-6">
-						<h2 className="text-2xl font-semibold text-black mb-2">Tickets</h2>
+						<h2 className="text-2xl font-semibold text-black mb-2">{t("tickets.title")}</h2>
 					</div>
 
 					{error && (
@@ -117,7 +119,7 @@ const Tickets = () => {
 							<CollapsibleTrigger asChild>
 								<div className="p-4 cursor-pointer hover:bg-gray-50 transition-colors">
 									<div className="flex items-center justify-between">
-										<h3 className="text-sm font-semibold text-black">Open a ticket via SMS</h3>
+										<h3 className="text-sm font-semibold text-black">{t("tickets.openTicketSms")}</h3>
 										<ChevronDown className={`h-4 w-4 transition-transform ${phoneDropdownOpen ? 'rotate-180' : ''}`} />
 									</div>
 								</div>
@@ -128,7 +130,7 @@ const Tickets = () => {
 										<div className="flex items-center justify-between">
 											<div>
 												<p className="text-sm font-medium text-black">+1 (555) 194-5342</p>
-												<p className="text-xs text-zinc-500">maintenance number</p>
+												<p className="text-xs text-zinc-500">{t("tickets.maintenanceNumber")}</p>
 											</div>
 											<Button
 												variant="outline"
@@ -136,14 +138,14 @@ const Tickets = () => {
 												onClick={() => handleCopy('+1 (555) 194-5342')}
 												className="border-black text-black hover:bg-black hover:text-white"
 											>
-												<Copy className="h-4 w-4 mr-1" /> Copy
+												<Copy className="h-4 w-4 mr-1" /> {t("tickets.copy")}
 											</Button>
 										</div>
 
 										<div className="flex items-center justify-between">
 											<div>
 												<p className="text-sm font-medium text-black">+1 (571) 624-2105</p>
-												<p className="text-xs text-zinc-500">housekeeper number</p>
+												<p className="text-xs text-zinc-500">{t("tickets.housekeeperNumber")}</p>
 											</div>
 											<Button
 												variant="outline"
@@ -151,7 +153,7 @@ const Tickets = () => {
 												onClick={() => handleCopy('+1 (571) 624-2105')}
 												className="border-black text-black hover:bg-black hover:text-white"
 											>
-												<Copy className="h-4 w-4 mr-1" /> Copy
+												<Copy className="h-4 w-4 mr-1" /> {t("tickets.copy")}
 											</Button>
 										</div>
 									</div>
@@ -165,11 +167,11 @@ const Tickets = () => {
 							<Table className="table-fixed">
 								<TableHeader>
 									<TableRow className="border-b border-black/10">
-										<TableHead className="text-xs uppercase tracking-wide text-zinc-500">Status</TableHead>
-										<TableHead className="text-xs uppercase tracking-wide text-zinc-500">Description</TableHead>
-										<TableHead className="text-xs uppercase tracking-wide text-zinc-500">Phone</TableHead>
-										<TableHead className="text-xs uppercase tracking-wide text-zinc-500">Latest</TableHead>
-										<TableHead className="text-xs uppercase tracking-wide text-zinc-500">Created</TableHead>
+										<TableHead className="text-xs uppercase tracking-wide text-zinc-500">{t("tickets.status")}</TableHead>
+										<TableHead className="text-xs uppercase tracking-wide text-zinc-500">{t("tickets.description")}</TableHead>
+										<TableHead className="text-xs uppercase tracking-wide text-zinc-500">{t("tickets.phone")}</TableHead>
+										<TableHead className="text-xs uppercase tracking-wide text-zinc-500">{t("tickets.latest")}</TableHead>
+										<TableHead className="text-xs uppercase tracking-wide text-zinc-500">{t("tickets.created")}</TableHead>
 									</TableRow>
 								</TableHeader>
 								<TableBody>
@@ -196,7 +198,7 @@ const Tickets = () => {
 										>
 											<TableCell className="whitespace-nowrap align-middle">
 												<Badge className={ticket.is_open ? 'bg-black text-white' : 'bg-transparent border border-black text-black'}>
-													{ticket.is_open ? 'Open' : 'Closed'}
+													{ticket.is_open ? t("tickets.open") : t("tickets.closed")}
 												</Badge>
 											</TableCell>
 											<TableCell className="max-w-[320px] truncate align-middle">
@@ -206,7 +208,7 @@ const Tickets = () => {
 												{getPhone(ticket) || '-'}
 											</TableCell>
 											<TableCell className="max-w-[240px] truncate text-zinc-700 align-middle">
-												{truncateText(ticket.latest, 40) || 'No updates'}
+												{truncateText(ticket.latest, 40) || t("tickets.noUpdates")}
 											</TableCell>
 											<TableCell className="whitespace-nowrap text-zinc-500 text-sm align-middle">
 												{formatDate(ticket.created_at)}
@@ -217,7 +219,7 @@ const Tickets = () => {
 									{!loading && tickets.length === 0 && (
 										<TableRow>
 											<TableCell colSpan={5} className="text-center py-8 text-gray-500">
-												No tickets found
+												{t("tickets.noTicketsFound")}
 											</TableCell>
 										</TableRow>
 									)}
@@ -232,7 +234,7 @@ const Tickets = () => {
 			<Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
 				<SheetContent className="w-[380px] sm:w-[520px] border-l border-black/10">
 					<SheetHeader>
-						<SheetTitle className="text-base font-semibold">Ticket Details</SheetTitle>
+						<SheetTitle className="text-base font-semibold">{t("tickets.ticketDetails")}</SheetTitle>
 						<SheetDescription className="text-xs text-zinc-500">
 							ID: {selectedTicket?.id}
 						</SheetDescription>
@@ -242,14 +244,14 @@ const Tickets = () => {
 						<div className="mt-4 space-y-5">
 							<div className="flex items-center justify-between">
 								<Badge className={selectedTicket.is_open ? 'bg-black text-white' : 'bg-transparent border border-black text-black'}>
-									{selectedTicket.is_open ? 'Open' : 'Closed'}
+									{selectedTicket.is_open ? t("tickets.open") : t("tickets.closed")}
 								</Badge>
 								<span className="text-xs text-zinc-500">{new Date(selectedTicket.created_at).toLocaleString()}</span>
 							</div>
 
 							{/* Image Section */}
 							<div className="space-y-2">
-								<h4 className="text-sm font-medium text-zinc-500">Related Image</h4>
+								<h4 className="text-sm font-medium text-zinc-500">{t("tickets.relatedImage")}</h4>
 								<div className="rounded-lg overflow-hidden border border-black/10 cursor-pointer hover:opacity-80 transition-opacity">
 									<img 
 										src={lampImage} 
@@ -258,27 +260,27 @@ const Tickets = () => {
 										onClick={() => setImageModalOpen(true)}
 									/>
 								</div>
-								<p className="text-xs text-zinc-400">Click image to view full size</p>
+								<p className="text-xs text-zinc-400">{t("tickets.clickImageFullSize")}</p>
 							</div>
 
 							<div className="space-y-2">
-								<h4 className="text-sm font-medium text-zinc-500">Description</h4>
+								<h4 className="text-sm font-medium text-zinc-500">{t("tickets.description")}</h4>
 								<p className="text-[15px] leading-relaxed text-black">
-									{selectedTicket.description || 'No description provided'}
+									{selectedTicket.description || t("tickets.noDescriptionProvided")}
 								</p>
 							</div>
 
 							<div className="space-y-1">
-								<h4 className="text-sm font-medium text-zinc-500">Contact Phone</h4>
+								<h4 className="text-sm font-medium text-zinc-500">{t("tickets.contactPhone")}</h4>
 								<p className="text-sm text-zinc-700">
-									{getPhone(selectedTicket) || 'No phone number provided'}
+									{getPhone(selectedTicket) || t("tickets.noPhoneProvided")}
 								</p>
 							</div>
 
 							<div className="space-y-1">
-								<h4 className="text-sm font-medium text-zinc-500">Latest Update</h4>
+								<h4 className="text-sm font-medium text-zinc-500">{t("tickets.latestUpdate")}</h4>
 								<p className="text-sm text-zinc-700 leading-relaxed">
-									{selectedTicket.latest || 'No recent updates'}
+									{selectedTicket.latest || t("tickets.noRecentUpdates")}
 								</p>
 							</div>
 
@@ -290,10 +292,10 @@ const Tickets = () => {
 										onClick={() => setSheetOpen(false)}
 										className="border-black text-black hover:bg-black hover:text-white"
 									>
-										Close
-										</Button>
+										{t("tickets.close")}
+									</Button>
 									<Button size="sm" className="bg-black text-white hover:bg-black/80">
-										{selectedTicket.is_open ? 'Mark as Closed' : 'Reopen Ticket'}
+										{selectedTicket.is_open ? t("tickets.markAsClosed") : t("tickets.reopenTicket")}
 									</Button>
 								</div>
 							</div>

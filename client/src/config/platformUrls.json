@@ -1,0 +1,8 @@
+{
+  "airbnb": "https://www.airbnb.com/host/homes",
+  "booking": "https://admin.booking.com/hotel/hoteladmin/",
+  "expedia": "https://partner.expediagroup.com/",
+  "instagram": "https://business.instagram.com/",
+  "telegram": "https://core.telegram.org/bots",
+  "whatsapp": "https://business.whatsapp.com/"
+} 
