@@ -3,19 +3,20 @@ import {
   BarChart3,
   AlertTriangle,
   LogOut,
-  Ticket
+  Ticket,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
+import { useUser, useClerk } from "@clerk/clerk-react";
 import logo from "@/assets/logo.jpg";
 
 export const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user } = useUser();
+  const { signOut } = useClerk();
 
   const handleNavigation = (path: string) => {
     navigate(path);
@@ -25,8 +26,8 @@ export const Sidebar = () => {
     navigate("/profile");
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await signOut({ redirectUrl: "/sign-in" });
   };
 
   const totalUnreadMessages = 0;
@@ -61,11 +62,7 @@ export const Sidebar = () => {
     <div className="w-16 bg-white text-black border-r border-black/5 flex flex-col">
       <div className="p-4 border-b border-black/5 flex items-center justify-center">
         <div className="w-8 h-8 bg-white rounded-md flex items-center justify-center border border-black/10">
-          <img
-            src={logo}
-            alt="iFlat Logo"
-            className="w-6 h-6 object-contain"
-          />
+          <img src={logo} alt="iFlat Logo" className="w-6 h-6 object-contain" />
         </div>
       </div>
 
@@ -78,7 +75,9 @@ export const Sidebar = () => {
               onClick={() => handleNavigation(item.path)}
               className={cn(
                 "w-full h-12 flex items-center justify-center rounded-lg transition-colors",
-                isActive ? "bg-zinc-50 text-black" : "hover:bg-black/5 text-black/70 hover:text-black"
+                isActive
+                  ? "bg-zinc-50 text-black"
+                  : "hover:bg-black/5 text-black/70 hover:text-black"
               )}
               aria-label={item.label}
               title={item.label}
@@ -101,14 +100,21 @@ export const Sidebar = () => {
           onClick={handleProfileClick}
           className={cn(
             "w-full h-12 flex items-center justify-center rounded-lg",
-            location.pathname === "/profile" ? "bg-zinc-50 text-black" : "hover:bg-black/5 text-black/70 hover:text-black"
+            location.pathname === "/profile"
+              ? "bg-zinc-50 text-black"
+              : "hover:bg-black/5 text-black/70 hover:text-black"
           )}
           aria-label="Profile"
           title="Profile"
         >
           <Avatar className="w-6 h-6">
             <AvatarFallback className="bg-black text-white text-xs">
-              {user?.name?.charAt(0).toUpperCase() || "U"}
+              {(
+                user?.fullName?.charAt(0) ||
+                user?.firstName?.charAt(0) ||
+                user?.primaryEmailAddress?.emailAddress?.charAt(0) ||
+                "U"
+              ).toUpperCase()}
             </AvatarFallback>
           </Avatar>
         </Button>

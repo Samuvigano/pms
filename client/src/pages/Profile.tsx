@@ -32,7 +32,7 @@ import {
   Unlink,
   Languages,
 } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useUser } from "@clerk/clerk-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 // Import platform logos
@@ -47,14 +47,14 @@ import whatsappLogo from "@/assets/whatsapp.svg";
 import platformUrls from "@/config/platformUrls.json";
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user } = useUser();
   const { language, changeLanguage, t } = useLanguage();
 
   const [userInfo, setUserInfo] = useState({
-    name: user?.name || "User",
-    email: user?.email || "user@example.com",
+    name: user?.fullName || user?.firstName || "User",
+    email: user?.primaryEmailAddress?.emailAddress || "user@example.com",
     phone: "+1 (555) 123-4567",
-    role: user?.role || "Property Manager",
+    role: "Property Manager",
     company: "W Properties",
     location: "New York, NY",
     joinDate: "January 2024",
@@ -82,8 +82,8 @@ const Profile = () => {
   };
 
   const availableLanguages = [
-    { code: 'en', name: t("common.english") },
-    { code: 'it', name: t("common.italian") },
+    { code: "en", name: t("common.english") },
+    { code: "it", name: t("common.italian") },
   ];
 
   const handleSave = () => {
@@ -95,18 +95,18 @@ const Profile = () => {
     // Open platform connection URL in new tab
     const url = platformUrls[platform];
     if (url) {
-      window.open(url, '_blank');
+      window.open(url, "_blank");
     }
     // TODO: After successful connection, update the connection status in DB
   };
 
   const handlePlatformDisconnect = (platform) => {
-    setPlatformConnections(prev => ({
+    setPlatformConnections((prev) => ({
       ...prev,
       [platform]: {
         ...prev[platform],
-        connected: false
-      }
+        connected: false,
+      },
     }));
     // TODO: Handle actual disconnection logic with DB
   };
@@ -127,9 +127,7 @@ const Profile = () => {
               <h2 className="text-2xl font-semibold text-gray-900 mb-2">
                 {t("profile.title")}
               </h2>
-              <p className="text-gray-600">
-                {t("profile.subtitle")}
-              </p>
+              <p className="text-gray-600">{t("profile.subtitle")}</p>
             </div>
 
             {/* Profile Overview Card */}
@@ -209,7 +207,9 @@ const Profile = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="location">{t("profile.location")}</Label>
+                        <Label htmlFor="location">
+                          {t("profile.location")}
+                        </Label>
                         <Input
                           id="location"
                           value={userInfo.location}
@@ -244,7 +244,9 @@ const Profile = () => {
                         </Button>
                       ) : (
                         <div className="flex gap-2">
-                          <Button onClick={handleSave}>{t("profile.saveChanges")}</Button>
+                          <Button onClick={handleSave}>
+                            {t("profile.saveChanges")}
+                          </Button>
                           <Button
                             variant="outline"
                             onClick={() => setIsEditing(false)}
@@ -301,13 +303,17 @@ const Profile = () => {
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
                     <Building2 className="h-8 w-8 text-blue-600 mx-auto mb-2" />
                     <p className="text-2xl font-bold text-gray-900">4</p>
-                    <p className="text-sm text-gray-600">{t("profile.propertiesManaged")}</p>
+                    <p className="text-sm text-gray-600">
+                      {t("profile.propertiesManaged")}
+                    </p>
                   </div>
 
                   <div className="text-center p-4 bg-green-50 rounded-lg">
                     <Mail className="h-8 w-8 text-green-600 mx-auto mb-2" />
                     <p className="text-2xl font-bold text-gray-900">142</p>
-                    <p className="text-sm text-gray-600">{t("profile.messagesThisMonth")}</p>
+                    <p className="text-sm text-gray-600">
+                      {t("profile.messagesThisMonth")}
+                    </p>
                   </div>
 
                   <div className="text-center p-4 bg-purple-50 rounded-lg">
@@ -315,7 +321,9 @@ const Profile = () => {
                     <p className="text-2xl font-bold text-gray-900">
                       {userInfo.joinDate}
                     </p>
-                    <p className="text-sm text-gray-600">{t("profile.memberSince")}</p>
+                    <p className="text-sm text-gray-600">
+                      {t("profile.memberSince")}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -334,41 +342,53 @@ const Profile = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {Object.entries(platformConnections).map(([key, platform]) => (
-                    <div
-                      key={key}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={platformLogos[key]}
-                          alt={platform.name}
-                          className="w-8 h-8 object-contain"
-                        />
-                        <div>
-                          <p className="font-medium text-gray-900">{t(`platforms.${key}`)}</p>
-                        </div>
-                      </div>
-                      <Button
-                        onClick={() => platform.connected ? handlePlatformDisconnect(key) : handlePlatformConnect(key)}
-                        variant={platform.connected ? "outline" : "default"}
-                        size="sm"
-                        className={platform.connected ? "text-red-600 border-red-200 hover:bg-red-50" : ""}
+                  {Object.entries(platformConnections).map(
+                    ([key, platform]) => (
+                      <div
+                        key={key}
+                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
                       >
-                        {platform.connected ? (
-                          <>
-                            <Unlink className="h-4 w-4 mr-1" />
-                            {t("profile.disconnect")}
-                          </>
-                        ) : (
-                          <>
-                            <Link className="h-4 w-4 mr-1" />
-                            {t("profile.connect")}
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  ))}
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={platformLogos[key]}
+                            alt={platform.name}
+                            className="w-8 h-8 object-contain"
+                          />
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              {t(`platforms.${key}`)}
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          onClick={() =>
+                            platform.connected
+                              ? handlePlatformDisconnect(key)
+                              : handlePlatformConnect(key)
+                          }
+                          variant={platform.connected ? "outline" : "default"}
+                          size="sm"
+                          className={
+                            platform.connected
+                              ? "text-red-600 border-red-200 hover:bg-red-50"
+                              : ""
+                          }
+                        >
+                          {platform.connected ? (
+                            <>
+                              <Unlink className="h-4 w-4 mr-1" />
+                              {t("profile.disconnect")}
+                            </>
+                          ) : (
+                            <>
+                              <Link className="h-4 w-4 mr-1" />
+                              {t("profile.connect")}
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )
+                  )}
                 </div>
               </CardContent>
             </Card>
