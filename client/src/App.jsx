@@ -8,10 +8,12 @@ import { SignIn, SignUp } from "@clerk/clerk-react";
 import Index from "./pages/Index";
 import Analytics from "./pages/Analytics";
 import Escalations from "./pages/Escalations";
-import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import Tickets from "./pages/Tickets";
 import ChatWidget from "@/components/ChatWidget";
+import { UserProfile } from "@clerk/clerk-react";
+import { Navigate } from "react-router-dom";
 
 const queryClient = new QueryClient();
 
@@ -66,12 +68,29 @@ const App = () => (
             }
           />
           <Route
-            path="/profile"
+            path="/settings"
             element={
               <ProtectedRoute>
-                <Profile />
+                <Settings />
               </ProtectedRoute>
             }
+          />
+          <Route
+            path="/settings/account"
+            element={
+              <ProtectedRoute>
+                <div className="flex h-screen bg-gray-50 w-full">
+                  <div className="w-16" />
+                  <div className="flex-1 overflow-auto p-6">
+                    <UserProfile routing="path" path="/settings/account" />
+                  </div>
+                </div>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={<Navigate to="/settings" replace />}
           />
 
           {/* Catch-all route */}

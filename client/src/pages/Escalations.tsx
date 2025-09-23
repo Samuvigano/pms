@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/Sidebar";
-import { Header } from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,7 +14,12 @@ import {
   Loader2,
   Info,
 } from "lucide-react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Escalation {
@@ -103,17 +107,27 @@ const Escalations = () => {
   };
 
   // Emphasized age label (days/hours) for aggressive display
-  const getAgeEmphasis = (timestamp: string): { label: string; className: string } => {
+  const getAgeEmphasis = (
+    timestamp: string
+  ): { label: string; className: string } => {
     const created = new Date(timestamp);
     const now = new Date();
     const diffMs = now.getTime() - created.getTime();
     const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     if (days >= 1) {
-      const severity = days >= 3 ? "text-red-600" : days >= 1 ? "text-orange-600" : "text-gray-600";
+      const severity =
+        days >= 3
+          ? "text-red-600"
+          : days >= 1
+          ? "text-orange-600"
+          : "text-gray-600";
       return { label: `${days}d`, className: `font-semibold ${severity}` };
     }
     const hours = Math.floor(diffMs / (1000 * 60 * 60));
-    return { label: `${Math.max(hours, 1)}h`, className: "font-semibold text-gray-600" };
+    return {
+      label: `${Math.max(hours, 1)}h`,
+      className: "font-semibold text-gray-600",
+    };
   };
 
   // Fetch escalations from API
@@ -283,7 +297,6 @@ const Escalations = () => {
       <div className="flex h-screen bg-gray-50 w-full">
         <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
-          <Header />
           <div className="flex-1 flex items-center justify-center">
             <div className="flex items-center space-x-2">
               <Loader2 className="h-6 w-6 animate-spin" />
@@ -299,16 +312,13 @@ const Escalations = () => {
     <div className="flex h-screen bg-gray-50 w-full">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
         <div className="flex-1 overflow-auto p-6">
           <div className="max-w-4xl mx-auto">
             <div className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 mb-2">
                 {t("escalations.title")}
               </h2>
-              <p className="text-gray-600">
-                {t("escalations.subtitle")}
-              </p>
+              <p className="text-gray-600">{t("escalations.subtitle")}</p>
             </div>
 
             {/* Pending Requests */}
@@ -326,21 +336,35 @@ const Escalations = () => {
                   >
                     {/* Corner avatar overlay */}
                     <div className="absolute -top-3 -right-3 h-10 w-10 rounded-full ring-2 ring-white shadow bg-gradient-to-r from-blue-500 to-indigo-500 text-white flex items-center justify-center text-xs font-semibold">
-                      {escalation.guestName?.split(" ").map((n) => n[0]).join("")}
+                      {escalation.guestName
+                        ?.split(" ")
+                        .map((n) => n[0])
+                        .join("")}
                     </div>
 
                     {/* Header and content */}
                     <div className="flex items-start gap-3 pr-10">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <h3 className="font-medium text-gray-900 truncate">{escalation.guestName}</h3>
+                          <h3 className="font-medium text-gray-900 truncate">
+                            {escalation.guestName}
+                          </h3>
                           {(() => {
                             const age = getAgeEmphasis(escalation.createdAt);
-                            return <span className={`text-sm ${age.className}`}>{age.label}</span>;
+                            return (
+                              <span className={`text-sm ${age.className}`}>
+                                {age.label}
+                              </span>
+                            );
                           })()}
                         </div>
-                        <p className="text-sm text-gray-600 truncate">{escalation.propertyName} • {formatTimestamp(escalation.createdAt)}</p>
-                        <p className="text-sm text-gray-800 mt-2">{escalation.message}</p>
+                        <p className="text-sm text-gray-600 truncate">
+                          {escalation.propertyName} •{" "}
+                          {formatTimestamp(escalation.createdAt)}
+                        </p>
+                        <p className="text-sm text-gray-800 mt-2">
+                          {escalation.message}
+                        </p>
                       </div>
                     </div>
 
@@ -350,7 +374,9 @@ const Escalations = () => {
                         <Textarea
                           value={responseMessage}
                           onChange={(e) => setResponseMessage(e.target.value)}
-                          placeholder={`${t("escalations.respond")} ${escalation.guestName}...`}
+                          placeholder={`${t("escalations.respond")} ${
+                            escalation.guestName
+                          }...`}
                           rows={3}
                         />
                       </div>
@@ -362,9 +388,13 @@ const Escalations = () => {
                         variant="ghost"
                         size="sm"
                         className="hover:bg-gray-100"
-                        onClick={() => { setInfoEscalation(escalation); setInfoOpen(true); }}
+                        onClick={() => {
+                          setInfoEscalation(escalation);
+                          setInfoOpen(true);
+                        }}
                       >
-                        <Info className="h-4 w-4 mr-1" /> {t("escalations.info")}
+                        <Info className="h-4 w-4 mr-1" />{" "}
+                        {t("escalations.info")}
                       </Button>
                       {selectedEscalation === escalation._id ? (
                         <>
@@ -380,7 +410,10 @@ const Escalations = () => {
                           <Button
                             size="sm"
                             onClick={() => handleSendResponse(escalation._id)}
-                            disabled={!responseMessage.trim() || sending === escalation._id}
+                            disabled={
+                              !responseMessage.trim() ||
+                              sending === escalation._id
+                            }
                           >
                             {sending === escalation._id ? (
                               <>
@@ -399,7 +432,19 @@ const Escalations = () => {
                         <>
                           <Button
                             size="sm"
-                            onClick={() => { setSelectedEscalation(escalation._id); setTimeout(() => document.getElementById(`resp-${escalation._id}`)?.scrollIntoView({ behavior: 'smooth', block: 'end' }), 0); }}
+                            onClick={() => {
+                              setSelectedEscalation(escalation._id);
+                              setTimeout(
+                                () =>
+                                  document
+                                    .getElementById(`resp-${escalation._id}`)
+                                    ?.scrollIntoView({
+                                      behavior: "smooth",
+                                      block: "end",
+                                    }),
+                                0
+                              );
+                            }}
                           >
                             {t("escalations.respond")}
                           </Button>
@@ -407,7 +452,9 @@ const Escalations = () => {
                             variant="ghost"
                             size="sm"
                             className="hover:bg-gray-100"
-                            onClick={() => handleResolveEscalation(escalation._id)}
+                            onClick={() =>
+                              handleResolveEscalation(escalation._id)
+                            }
                             disabled={resolving === escalation._id}
                             aria-label="Resolve"
                             title="Resolve"
@@ -431,7 +478,8 @@ const Escalations = () => {
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
                   <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                  {t("escalations.recentlyResolved")} ({resolvedEscalations.length})
+                  {t("escalations.recentlyResolved")} (
+                  {resolvedEscalations.length})
                 </h3>
 
                 <div className="space-y-3">
@@ -447,11 +495,20 @@ const Escalations = () => {
                       <div className="flex items-start gap-3 pr-10">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
-                            <h3 className="font-medium text-gray-900 truncate">{escalation.guestName}</h3>
-                            <span className="text-sm font-semibold text-green-600">{t("escalations.done")}</span>
+                            <h3 className="font-medium text-gray-900 truncate">
+                              {escalation.guestName}
+                            </h3>
+                            <span className="text-sm font-semibold text-green-600">
+                              {t("escalations.done")}
+                            </span>
                           </div>
-                          <p className="text-sm text-gray-600 truncate">{escalation.propertyName} • {formatTimestamp(escalation.createdAt)}</p>
-                          <p className="text-sm text-gray-700 mt-2">{escalation.message}</p>
+                          <p className="text-sm text-gray-600 truncate">
+                            {escalation.propertyName} •{" "}
+                            {formatTimestamp(escalation.createdAt)}
+                          </p>
+                          <p className="text-sm text-gray-700 mt-2">
+                            {escalation.message}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -472,33 +529,56 @@ const Escalations = () => {
               <div className="mt-4 space-y-4">
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                    {infoEscalation.guestName?.split(" ").map((n) => n[0]).join("")}
+                    {infoEscalation.guestName
+                      ?.split(" ")
+                      .map((n) => n[0])
+                      .join("")}
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900">{infoEscalation.guestName}</div>
-                    <div className="text-xs text-gray-500">{infoEscalation.propertyName}</div>
+                    <div className="font-semibold text-gray-900">
+                      {infoEscalation.guestName}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {infoEscalation.propertyName}
+                    </div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="rounded-lg border p-3">
-                    <div className="text-xs text-gray-500">{t("escalations.priority")}</div>
-                    <div className="text-sm font-medium capitalize">{t(`escalations.${infoEscalation.priority || "medium"}`)}</div>
+                    <div className="text-xs text-gray-500">
+                      {t("escalations.priority")}
+                    </div>
+                    <div className="text-sm font-medium capitalize">
+                      {t(`escalations.${infoEscalation.priority || "medium"}`)}
+                    </div>
                   </div>
                   <div className="rounded-lg border p-3">
-                    <div className="text-xs text-gray-500">{t("escalations.status")}</div>
-                    <div className="text-sm font-medium capitalize">{t(`escalations.${infoEscalation.status}`)}</div>
+                    <div className="text-xs text-gray-500">
+                      {t("escalations.status")}
+                    </div>
+                    <div className="text-sm font-medium capitalize">
+                      {t(`escalations.${infoEscalation.status}`)}
+                    </div>
                   </div>
                 </div>
 
                 <div className="rounded-lg border p-3">
-                  <div className="text-xs text-gray-500">{t("tickets.created")}</div>
-                  <div className="text-sm font-medium">{formatTimestamp(infoEscalation.createdAt)}</div>
+                  <div className="text-xs text-gray-500">
+                    {t("tickets.created")}
+                  </div>
+                  <div className="text-sm font-medium">
+                    {formatTimestamp(infoEscalation.createdAt)}
+                  </div>
                 </div>
 
                 <div className="rounded-lg border p-3">
-                  <div className="text-xs text-gray-500">{t("escalations.message")}</div>
-                  <div className="text-sm mt-1 text-gray-800">{infoEscalation.message}</div>
+                  <div className="text-xs text-gray-500">
+                    {t("escalations.message")}
+                  </div>
+                  <div className="text-sm mt-1 text-gray-800">
+                    {infoEscalation.message}
+                  </div>
                 </div>
               </div>
             )}

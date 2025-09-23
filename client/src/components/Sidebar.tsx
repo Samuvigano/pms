@@ -2,32 +2,25 @@ import {
   MessageCircle,
   BarChart3,
   AlertTriangle,
-  LogOut,
+  Settings as SettingsIcon,
   Ticket,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { useUser, useClerk } from "@clerk/clerk-react";
+import { UserButton } from "@clerk/clerk-react";
 import logo from "@/assets/logo.jpg";
 
 export const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useUser();
-  const { signOut } = useClerk();
 
   const handleNavigation = (path: string) => {
     navigate(path);
   };
 
-  const handleProfileClick = () => {
-    navigate("/profile");
-  };
-
-  const handleLogout = async () => {
-    await signOut({ redirectUrl: "/sign-in" });
+  const handleSettingsClick = () => {
+    navigate("/settings");
   };
 
   const totalUnreadMessages = 0;
@@ -95,38 +88,37 @@ export const Sidebar = () => {
       </nav>
 
       <div className="p-2 border-t border-black/5 space-y-2">
-        <Button
-          variant="ghost"
-          onClick={handleProfileClick}
+        <div
           className={cn(
             "w-full h-12 flex items-center justify-center rounded-lg",
-            location.pathname === "/profile"
-              ? "bg-zinc-50 text-black"
-              : "hover:bg-black/5 text-black/70 hover:text-black"
+            "hover:bg-black/5"
           )}
-          aria-label="Profile"
-          title="Profile"
+          title="Account"
+          aria-label="Account"
         >
-          <Avatar className="w-6 h-6">
-            <AvatarFallback className="bg-black text-white text-xs">
-              {(
-                user?.fullName?.charAt(0) ||
-                user?.firstName?.charAt(0) ||
-                user?.primaryEmailAddress?.emailAddress?.charAt(0) ||
-                "U"
-              ).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-        </Button>
+          <UserButton
+            afterSignOutUrl="/sign-in"
+            userProfileMode="navigation"
+            userProfileUrl="/settings/account"
+            appearance={{
+              elements: { userButtonAvatarBox: { width: 24, height: 24 } },
+            }}
+          />
+        </div>
 
         <Button
           variant="ghost"
-          onClick={handleLogout}
-          className="w-full h-12 flex items-center justify-center rounded-lg hover:bg-black/5 text-black/70 hover:text-black"
-          aria-label="Logout"
-          title="Logout"
+          onClick={handleSettingsClick}
+          className={cn(
+            "w-full h-12 flex items-center justify-center rounded-lg",
+            location.pathname.startsWith("/settings")
+              ? "bg-zinc-50 text-black"
+              : "hover:bg-black/5 text-black/70 hover:text-black"
+          )}
+          aria-label="Settings"
+          title="Settings"
         >
-          <LogOut className="h-5 w-5" />
+          <SettingsIcon className="h-5 w-5" />
         </Button>
       </div>
     </div>
