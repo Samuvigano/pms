@@ -7,6 +7,7 @@ import axios from "axios";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
+import { clerkMiddleware, requireAuth } from "@clerk/express";
 import OpenAI from "openai";
 dotenv.config();
 
@@ -38,21 +39,15 @@ app.use(
 
 app.use(express.json());
 
-app.use(express.static("../client/dist"));
+app.use(clerkMiddleware());
 
-const authenticate = (req, res, next) => {
-  const password = req.query.password;
-  if (!password || password !== process.env.AUTH_PASSWORD) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-  next();
-};
+app.use(express.static("../client/dist"));
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../client/dist/index.html"));
 });
 
-app.get("/api/v1/users", authenticate, async (req, res) => {
+app.get("/api/v1/users", requireAuth(), async (req, res) => {
   try {
     // Aggregate users with their last message and timestamp
     const users = await User.aggregate([
@@ -91,7 +86,7 @@ app.get("/api/v1/users", authenticate, async (req, res) => {
   }
 });
 
-app.get("/api/v1/messages", authenticate, async (req, res) => {
+app.get("/api/v1/messages", requireAuth(), async (req, res) => {
   try {
     const messages = await Message.find({ wa_id: req.query.id }).select(
       "message_id text direction timestamp image"
@@ -102,15 +97,15 @@ app.get("/api/v1/messages", authenticate, async (req, res) => {
   }
 });
 
-app.post("/api/v1/send", authenticate, async (req, res) => {
+app.post("/api/v1/send", requireAuth(), async (req, res) => {
   try {
     const { to, text } = req.body;
     console.log(to, text);
     const whatsappUrl = process.env.WHATSAPP_URL;
     const response = await axios.get(
-      `${whatsappUrl}/send?to=${encodeURIComponent(to)}&text=${encodeURIComponent(
-        text
-      )}`
+      `${whatsappUrl}/send?to=${encodeURIComponent(
+        to
+      )}&text=${encodeURIComponent(text)}`
     );
     console.log(response);
     res.status(200).json({ message: "Message sent successfully" });
@@ -119,7 +114,7 @@ app.post("/api/v1/send", authenticate, async (req, res) => {
   }
 });
 
-app.get("/api/v1/analytics", authenticate, async (req, res) => {
+app.get("/api/v1/analytics", requireAuth(), async (req, res) => {
   try {
     const totalMessages = await Message.countDocuments();
     const totalEscalations = await Escalation.countDocuments();
@@ -169,7 +164,7 @@ app.get("/api/v1/analytics", authenticate, async (req, res) => {
   }
 });
 
-app.get("/api/v1/escalations", authenticate, async (req, res) => {
+app.get("/api/v1/escalations", requireAuth(), async (req, res) => {
   try {
     const escalations = await Escalation.aggregate([
       { $sort: { createdAt: -1 } },
@@ -207,7 +202,7 @@ app.get("/api/v1/escalations", authenticate, async (req, res) => {
   }
 });
 
-app.post("/api/v1/escalations/resolve", authenticate, async (req, res) => {
+app.post("/api/v1/escalations/resolve", requireAuth(), async (req, res) => {
   try {
     const { id } = req.body;
 
