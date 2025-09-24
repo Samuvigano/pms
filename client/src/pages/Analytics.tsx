@@ -1,5 +1,4 @@
 import { Sidebar } from "@/components/Sidebar";
-import { Header } from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   PieChart,
@@ -79,7 +78,6 @@ const Analytics = () => {
       <div className="flex h-screen bg-gray-50 w-full">
         <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
-          <Header />
           <div className="flex-1 overflow-auto p-6">
             <div className="flex items-center justify-center h-full">
               <div className="text-lg">{t("analytics.loadingAnalytics")}</div>
@@ -95,10 +93,11 @@ const Analytics = () => {
       <div className="flex h-screen bg-gray-50 w-full">
         <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
-          <Header />
           <div className="flex-1 overflow-auto p-6">
             <div className="flex items-center justify-center h-full">
-              <div className="text-lg text-red-600">{t("analytics.error")}: {error}</div>
+              <div className="text-lg text-red-600">
+                {t("analytics.error")}: {error}
+              </div>
             </div>
           </div>
         </div>
@@ -110,15 +109,12 @@ const Analytics = () => {
     <div className="flex h-screen bg-gray-50 w-full">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
         <div className="flex-1 overflow-auto p-6">
           <div className="mb-6">
             <h2 className="text-2xl font-semibold text-gray-900 mb-2">
               {t("analytics.title")}
             </h2>
-            <p className="text-gray-600">
-              {t("analytics.subtitle")}
-            </p>
+            <p className="text-gray-600">{t("analytics.subtitle")}</p>
           </div>
 
           {/* Key Metrics */}
@@ -168,7 +164,9 @@ const Analytics = () => {
                 <div className="text-2xl font-bold">
                   {analyticsData?.totalUsers || "0"}
                 </div>
-                <p className="text-xs text-muted-foreground">{t("analytics.uniqueGuests")}</p>
+                <p className="text-xs text-muted-foreground">
+                  {t("analytics.uniqueGuests")}
+                </p>
               </CardContent>
             </Card>
 
@@ -184,7 +182,8 @@ const Analytics = () => {
                   {analyticsData?.totalEscalations || "0"}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {analyticsData?.totalPendingEscalations || "0"} {t("analytics.pendingResolution")}
+                  {analyticsData?.totalPendingEscalations || "0"}{" "}
+                  {t("analytics.pendingResolution")}
                 </p>
               </CardContent>
             </Card>

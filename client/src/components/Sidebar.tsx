@@ -2,31 +2,25 @@ import {
   MessageCircle,
   BarChart3,
   AlertTriangle,
-  LogOut,
-  Ticket
+  Settings as SettingsIcon,
+  Ticket,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
+import { UserButton } from "@clerk/clerk-react";
 import logo from "@/assets/logo.jpg";
 
 export const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout } = useAuth();
 
   const handleNavigation = (path: string) => {
     navigate(path);
   };
 
-  const handleProfileClick = () => {
-    navigate("/profile");
-  };
-
-  const handleLogout = () => {
-    logout();
+  const handleSettingsClick = () => {
+    navigate("/settings");
   };
 
   const totalUnreadMessages = 0;
@@ -61,11 +55,7 @@ export const Sidebar = () => {
     <div className="w-16 bg-white text-black border-r border-black/5 flex flex-col">
       <div className="p-4 border-b border-black/5 flex items-center justify-center">
         <div className="w-8 h-8 bg-white rounded-md flex items-center justify-center border border-black/10">
-          <img
-            src={logo}
-            alt="iFlat Logo"
-            className="w-6 h-6 object-contain"
-          />
+          <img src={logo} alt="iFlat Logo" className="w-6 h-6 object-contain" />
         </div>
       </div>
 
@@ -78,7 +68,9 @@ export const Sidebar = () => {
               onClick={() => handleNavigation(item.path)}
               className={cn(
                 "w-full h-12 flex items-center justify-center rounded-lg transition-colors",
-                isActive ? "bg-zinc-50 text-black" : "hover:bg-black/5 text-black/70 hover:text-black"
+                isActive
+                  ? "bg-zinc-50 text-black"
+                  : "hover:bg-black/5 text-black/70 hover:text-black"
               )}
               aria-label={item.label}
               title={item.label}
@@ -96,31 +88,37 @@ export const Sidebar = () => {
       </nav>
 
       <div className="p-2 border-t border-black/5 space-y-2">
-        <Button
-          variant="ghost"
-          onClick={handleProfileClick}
+        <div
           className={cn(
             "w-full h-12 flex items-center justify-center rounded-lg",
-            location.pathname === "/profile" ? "bg-zinc-50 text-black" : "hover:bg-black/5 text-black/70 hover:text-black"
+            "hover:bg-black/5"
           )}
-          aria-label="Profile"
-          title="Profile"
+          title="Account"
+          aria-label="Account"
         >
-          <Avatar className="w-6 h-6">
-            <AvatarFallback className="bg-black text-white text-xs">
-              {user?.name?.charAt(0).toUpperCase() || "U"}
-            </AvatarFallback>
-          </Avatar>
-        </Button>
+          <UserButton
+            afterSignOutUrl="/sign-in"
+            userProfileMode="navigation"
+            userProfileUrl="/settings/account"
+            appearance={{
+              elements: { userButtonAvatarBox: { width: 24, height: 24 } },
+            }}
+          />
+        </div>
 
         <Button
           variant="ghost"
-          onClick={handleLogout}
-          className="w-full h-12 flex items-center justify-center rounded-lg hover:bg-black/5 text-black/70 hover:text-black"
-          aria-label="Logout"
-          title="Logout"
+          onClick={handleSettingsClick}
+          className={cn(
+            "w-full h-12 flex items-center justify-center rounded-lg",
+            location.pathname.startsWith("/settings")
+              ? "bg-zinc-50 text-black"
+              : "hover:bg-black/5 text-black/70 hover:text-black"
+          )}
+          aria-label="Settings"
+          title="Settings"
         >
-          <LogOut className="h-5 w-5" />
+          <SettingsIcon className="h-5 w-5" />
         </Button>
       </div>
     </div>

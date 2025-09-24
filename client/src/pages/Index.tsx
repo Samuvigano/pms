@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { MessageCenter } from "@/components/MessageCenter";
 import { GuestList } from "@/components/GuestList";
-import { Header } from "@/components/Header";
 
 const Index = () => {
   const [selectedGuest, setSelectedGuest] = useState<any | null>(null);
@@ -19,7 +18,6 @@ const Index = () => {
     <div className="flex h-screen bg-gray-50 w-full">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
         <div className="flex-1 flex overflow-hidden">
           <GuestList
             selectedGuest={selectedGuest}

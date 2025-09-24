@@ -8,10 +8,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -20,16 +19,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  User,
   Mail,
   Phone,
   MapPin,
   Building2,
   Calendar,
-  Settings,
+  Languages,
   Link,
   Unlink,
-  Languages,
 } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -45,21 +42,16 @@ import whatsappLogo from "@/assets/whatsapp.svg";
 // Import platform URLs
 import platformUrls from "@/config/platformUrls.json";
 
-const Profile = () => {
+const Settings = () => {
   const { user } = useUser();
   const { language, changeLanguage, t } = useLanguage();
 
-  const [userInfo, setUserInfo] = useState({
-    name: user?.fullName || user?.firstName || "User",
+  const [contactInfo, setContactInfo] = useState({
     email: user?.primaryEmailAddress?.emailAddress || "user@example.com",
     phone: "+1 (555) 123-4567",
-    role: "Property Manager",
-    company: "W Properties",
     location: "New York, NY",
     joinDate: "January 2024",
   });
-
-  const [isEditing, setIsEditing] = useState(false);
 
   // Platform connection state - all disconnected by default until DB implementation
   const [platformConnections, setPlatformConnections] = useState({
@@ -71,7 +63,7 @@ const Profile = () => {
     whatsapp: { connected: false, name: t("platforms.whatsapp") },
   });
 
-  const platformLogos = {
+  const platformLogos: Record<string, string> = {
     airbnb: airbnbLogo,
     booking: bookingLogo,
     expedia: expediaLogo,
@@ -85,21 +77,14 @@ const Profile = () => {
     { code: "it", name: t("common.italian") },
   ];
 
-  const handleSave = () => {
-    setIsEditing(false);
-    // Here you would typically save to backend
-  };
-
-  const handlePlatformConnect = (platform) => {
-    // Open platform connection URL in new tab
-    const url = platformUrls[platform];
+  const handlePlatformConnect = (platform: string) => {
+    const url = (platformUrls as Record<string, string>)[platform];
     if (url) {
       window.open(url, "_blank");
     }
-    // TODO: After successful connection, update the connection status in DB
   };
 
-  const handlePlatformDisconnect = (platform) => {
+  const handlePlatformDisconnect = (platform: string) => {
     setPlatformConnections((prev) => ({
       ...prev,
       [platform]: {
@@ -107,10 +92,9 @@ const Profile = () => {
         connected: false,
       },
     }));
-    // TODO: Handle actual disconnection logic with DB
   };
 
-  const handleLanguageChange = (newLanguage) => {
+  const handleLanguageChange = (newLanguage: string) => {
     changeLanguage(newLanguage);
   };
 
@@ -120,144 +104,16 @@ const Profile = () => {
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 overflow-auto p-6">
           <div className="max-w-4xl mx-auto space-y-6">
-            {/* Header */}
             <div className="mb-6">
               <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-                {t("profile.title")}
+                {t("settings.title", { defaultValue: "Settings" })}
               </h2>
-              <p className="text-gray-600">{t("profile.subtitle")}</p>
+              <p className="text-gray-600">
+                {t("settings.subtitle", {
+                  defaultValue: "Manage your preferences and integrations",
+                })}
+              </p>
             </div>
-
-            {/* Profile Overview Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5 text-blue-600" />
-                  {t("profile.profileInformation")}
-                </CardTitle>
-                <CardDescription>
-                  {t("profile.profileDescription")}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-start gap-6">
-                  <Avatar className="w-20 h-20">
-                    <AvatarFallback className="bg-blue-100 text-blue-700 text-xl font-semibold">
-                      {userInfo.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </AvatarFallback>
-                  </Avatar>
-
-                  <div className="flex-1 space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="name">{t("profile.fullName")}</Label>
-                        <Input
-                          id="name"
-                          value={userInfo.name}
-                          onChange={(e) =>
-                            setUserInfo({ ...userInfo, name: e.target.value })
-                          }
-                          disabled={!isEditing}
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="email">{t("profile.email")}</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          value={userInfo.email}
-                          onChange={(e) =>
-                            setUserInfo({ ...userInfo, email: e.target.value })
-                          }
-                          disabled={!isEditing}
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="phone">{t("profile.phone")}</Label>
-                        <Input
-                          id="phone"
-                          value={userInfo.phone}
-                          onChange={(e) =>
-                            setUserInfo({ ...userInfo, phone: e.target.value })
-                          }
-                          disabled={!isEditing}
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="company">{t("profile.company")}</Label>
-                        <Input
-                          id="company"
-                          value={userInfo.company}
-                          onChange={(e) =>
-                            setUserInfo({
-                              ...userInfo,
-                              company: e.target.value,
-                            })
-                          }
-                          disabled={!isEditing}
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="location">
-                          {t("profile.location")}
-                        </Label>
-                        <Input
-                          id="location"
-                          value={userInfo.location}
-                          onChange={(e) =>
-                            setUserInfo({
-                              ...userInfo,
-                              location: e.target.value,
-                            })
-                          }
-                          disabled={!isEditing}
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="role">{t("profile.role")}</Label>
-                        <Input
-                          id="role"
-                          value={userInfo.role}
-                          onChange={(e) =>
-                            setUserInfo({ ...userInfo, role: e.target.value })
-                          }
-                          disabled={!isEditing}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 pt-4">
-                      {!isEditing ? (
-                        <Button onClick={() => setIsEditing(true)}>
-                          <Settings className="h-4 w-4 mr-2" />
-                          {t("profile.editProfile")}
-                        </Button>
-                      ) : (
-                        <div className="flex gap-2">
-                          <Button onClick={handleSave}>
-                            {t("profile.saveChanges")}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            onClick={() => setIsEditing(false)}
-                          >
-                            {t("profile.cancel")}
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Language Selection */}
             <Card>
@@ -317,7 +173,7 @@ const Profile = () => {
                   <div className="text-center p-4 bg-purple-50 rounded-lg">
                     <Calendar className="h-8 w-8 text-purple-600 mx-auto mb-2" />
                     <p className="text-2xl font-bold text-gray-900">
-                      {userInfo.joinDate}
+                      {contactInfo.joinDate}
                     </p>
                     <p className="text-sm text-gray-600">
                       {t("profile.memberSince")}
@@ -360,19 +216,21 @@ const Profile = () => {
                         </div>
                         <Button
                           onClick={() =>
-                            platform.connected
+                            (platform as any).connected
                               ? handlePlatformDisconnect(key)
                               : handlePlatformConnect(key)
                           }
-                          variant={platform.connected ? "outline" : "default"}
+                          variant={
+                            (platform as any).connected ? "outline" : "default"
+                          }
                           size="sm"
                           className={
-                            platform.connected
+                            (platform as any).connected
                               ? "text-red-600 border-red-200 hover:bg-red-50"
                               : ""
                           }
                         >
-                          {platform.connected ? (
+                          {(platform as any).connected ? (
                             <>
                               <Unlink className="h-4 w-4 mr-1" />
                               {t("profile.disconnect")}
@@ -403,19 +261,21 @@ const Profile = () => {
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
                     <Mail className="h-5 w-5 text-gray-500" />
-                    <span className="text-gray-900">{userInfo.email}</span>
+                    <span className="text-gray-900">{contactInfo.email}</span>
                     <Badge variant="outline">{t("profile.primary")}</Badge>
                   </div>
 
                   <div className="flex items-center gap-3">
                     <Phone className="h-5 w-5 text-gray-500" />
-                    <span className="text-gray-900">{userInfo.phone}</span>
+                    <span className="text-gray-900">{contactInfo.phone}</span>
                     <Badge variant="outline">{t("profile.work")}</Badge>
                   </div>
 
                   <div className="flex items-center gap-3">
                     <MapPin className="h-5 w-5 text-gray-500" />
-                    <span className="text-gray-900">{userInfo.location}</span>
+                    <span className="text-gray-900">
+                      {contactInfo.location}
+                    </span>
                     <Badge variant="outline">{t("profile.office")}</Badge>
                   </div>
                 </div>
@@ -428,4 +288,4 @@ const Profile = () => {
   );
 };
 
-export default Profile;
+export default Settings;
